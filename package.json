@@ -1,0 +1,6 @@
+{
+    "name": "discord-photon",
+    "dependencies": {
+        "blessed": "^0.1.81"
+    }
+}
