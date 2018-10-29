@@ -1,5 +1,9 @@
 const blessed = require("blessed");
 
+var chunkStr = function(str, chunkLength) {
+    return str.match(new RegExp('[\\s\\S]{1,' + +chunkLength + '}', 'g'));
+}
+
 class ClientUI {
     /**
      * The login window.
@@ -8,7 +12,7 @@ class ClientUI {
     constructor(screen) {
         this.screen = screen;
 
-        this.guild_box = blessed.box({
+        const guild_box = blessed.box({
             left: 0,
             top: 0,
             width: 8,
@@ -20,7 +24,7 @@ class ClientUI {
             scrollable: true
         });
 
-        this.channel_box = blessed.box({
+        const channel_box = blessed.box({
             left: 8,
             top: 0,
             width: 24,
@@ -32,7 +36,7 @@ class ClientUI {
             scrollable: true
         });
 
-        this.top_bar = blessed.box({
+        const top_bar = blessed.box({
             left: 33,
             top: 0,
             width: "100%-33",
@@ -43,7 +47,7 @@ class ClientUI {
             }
         });
 
-        this.top_bar_channel_name = blessed.text({
+        const top_bar_channel_name = blessed.text({
             left: 2,
             top: 1,
             content: "#general",
@@ -52,7 +56,7 @@ class ClientUI {
             }
         });
 
-        this.chat = blessed.box({
+        const chat = blessed.box({
             left: 33,
             top: 3,
             width: "100%-33",
@@ -65,7 +69,7 @@ class ClientUI {
             scrollable: true
         });
 
-        this.input_box = blessed.textbox({
+        const input_box = blessed.textbox({
             left: 33,
             bottom: 2,
             height: 3,
@@ -77,7 +81,7 @@ class ClientUI {
             }
         });
 
-        this.status_text = blessed.text({
+        const status_text = blessed.text({
             left: 33,
             bottom: 1,
             height: 1,
@@ -87,7 +91,7 @@ class ClientUI {
             }
         });
 
-        this.user_text = blessed.text({
+        const user_text = blessed.text({
             left: 10,
             bottom: 1,
             height: 1,
@@ -98,7 +102,7 @@ class ClientUI {
             }
         });
 
-        this.ver_text = blessed.text({
+        const ver_text = blessed.text({
             right: 1,
             bottom: 0,
             height: 1,
@@ -108,20 +112,20 @@ class ClientUI {
             }
         });
 
-        screen.append(this.guild_box);
-        screen.append(this.channel_box);
-        screen.append(this.top_bar);
-        screen.append(this.chat);
-        screen.append(this.input_box);
-        screen.append(this.status_text);
-        screen.append(this.user_text);
-        screen.append(this.ver_text);
+        screen.append(guild_box);
+        screen.append(channel_box);
+        screen.append(top_bar);
+        screen.append(chat);
+        screen.append(input_box);
+        screen.append(status_text);
+        screen.append(user_text);
+        screen.append(ver_text);
+        top_bar.append(top_bar_channel_name);
+        input_box.setValue("Chat in #general...");
 
-        this.top_bar.append(this.top_bar_channel_name);
+        this.components = { guild_box, channel_box, top_bar, chat, input_box, status_text, user_text, ver_text, top_bar_channel_name }
 
-        this.input_box.setValue("Chat in #general...");
-
-        this.input_box.focus();
+        this.redraw();
     }
 
     updateGuildList({ guilds: [] }) {
@@ -141,6 +145,50 @@ class ClientUI {
     }
 
     addMessageToChat({ author, id, channelid, content, date }) {
+        const children = this.components.chat.children.map(ch => ch.position.height);
+        const y = children.reduce((a, b) => a + b, 0);
+
+        const computedWidth = this.components.chat.width - 16;
+        const forced_linebreaks = chunkStr(content, computedWidth).length;
+        const linebreaks = forced_linebreaks + content.split("\n").length;
+
+        const wrapper = blessed.box({
+            width: "100%",
+            top: y,
+            height: linebreaks + 1
+        });
+
+        const msg_author = blessed.text({
+            content: author.substring(0, 16),
+            top: 0,
+            height: 1,
+            style: {
+                fg: "#ffffff"
+            }
+        });
+        const msg_date = blessed.text({
+            content: "15:17",
+            top: 1,
+            height: 1,
+            style: {
+                fg: "gray"
+            }
+        });
+        const msg_content = blessed.box({
+            content,
+            top: 0,
+            left: 16,
+            height: linebreaks,
+            style: {
+                fg: "gray"
+            }
+        });
+
+        this.components.chat.append(wrapper);
+        wrapper.append(msg_author);
+        wrapper.append(msg_date);
+        wrapper.append(msg_content);
+
         this.redraw();
     }
 
