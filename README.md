@@ -1,5 +1,5 @@
 # Discord Photon
-A WIP Discord client with an interface which mimicks the official client. It uses `discord.js` for talking with the server and `blessed` for the UI.
+A WIP Discord client with an interface that mimicks the official client. It uses `discord.js` for talking with the server and `blessed` for the UI.
 
 It doesn't have any kind of functionality yet.
 
